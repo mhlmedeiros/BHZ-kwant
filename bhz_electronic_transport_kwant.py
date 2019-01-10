@@ -106,21 +106,131 @@ def bhz_down(a=2, L=1000, W=200):
     return syst
 
 
+def analyze_bhz_up(pot=0, L_barrier=500, shift=0, lead_index=0):
+
+    '''
+    Only for "up" component:
+
+    This function returns a mapping of absolute squared wave function over the
+    system shape, and, likewise, the current density mapping.
+
+    lead_index = lead identifier: 0 for left lead and 1 for right lead
+    L_barrier = length of potential scatterer (a barrier or a well)
+    pot =  potential level for leads (only appear in the definition of the dictionary "params")
+    shift = difference between scatterer potential level and leads potential (only at "potential_barrier")
+
+    If shift is negative the scatterer will be a well, otherwise it'll be a barrier.
+    Note that the signs of "pot" and "shift" are both changed bellow, this is because
+    we want to think in terms of a tunable Fermi level, but what the code actually
+    do is to move all the band structure with a fixed Fermi level at E = 0.
+
+    '''
+
+    def potential_barrier(x,y):
+        """
+        This function defines the potential scatterer in center of the system.
+        It is passed as the C-parameter in the dictionary 'params'.
+        x, y = coordinates in the plane of system
+
+        """
+        if abs(x) < L_barrier/2 :
+            """
+            The potential has the width of the system and is y-independent
+            The shape of the potential depend on the sign of the value "shift";
+            if shift > 0 we have a barrier, otherwise we get a well.
+            """
+            return pot-shift
+        else:
+            return 0
 
 
+    params = dict(A=364.5, B=-686.0, D=-512.0,
+        M=-10.0, C=potential_barrier,C_const=-pot)
+    syst = bhz_up()
+    kx_max = 0.25
+    kx_min = -kx_max
+    kwant.plotter.bands(syst.leads[0], params=params,
+                        momenta=np.linspace(kx_min, kx_max, 201),
+                        fig_size=(6,6), show=False)
+
+    plt.grid()
+    plt.xlim(kx_min, kx_max)
+    plt.ylim(-40, 40)
+    plt.xlabel(r'momentum [nm$^{-1}$]')
+    plt.ylabel(r'Energy [meV]')
+    plt.tight_layout()
+    plt.show()
+
+
+    # get scattering wave functions at E=0
+    wf = kwant.wave_function(syst, energy=0, params=params)
+
+    # prepare density operators
+    sigma_z = np.array([[1, 0], [0, -1]])
+    prob_density = kwant.operator.Density(syst, np.eye(2))
+    J_0 = kwant.operator.Current(syst)
+
+    # calculate expectation values and plot them
+    wf_sqr = sum(prob_density(psi) for psi in wf(lead_index))
+    current = sum(J_0(psi,params=params) for psi in wf(lead_index))
+
+    ax1 = plt.gca()
+    ax1.set_title(r'$\Psi_{\uparrow}$')
+    ax1.set_xlabel(r'$x$ [nm]')
+    ax1.set_ylabel(r'$y$ [nm]')
+    kwant.plotter.map(syst, wf_sqr,colorbar=False,fig_size=(9,2),ax=ax1)
+    plt.tight_layout()
+    plt.show()
+
+    ax2 = plt.gca()
+    ax2.set_title(r'$J_{\uparrow}$')
+    ax2.set_xlabel(r'$x$ [nm]')
+    ax2.set_ylabel(r'$y$ [nm]')
+    kwant.plotter.current(syst, current,colorbar=False,fig_size=(14,2),ax=ax2)
+    plt.tight_layout()
+    plt.show()
 
 def analyze_bhz_down(pot=0, L_barrier=500, shift=0, lead_index=0):
 
+    '''
+    Only for "down" component:
+
+    This function returns a mapping of absolute squared wave function over the
+    system shape, and, likewise, the current density mapping.
+
+    lead_index = lead identifier: 0 for left lead and 1 for right lead
+    L_barrier = length of potential scatterer (a barrier or a well)
+    pot =  potential level for leads (only appear in the definition of the dictionary "params")
+    shift = difference between scatterer potential level and leads potential (only at "potential_barrier")
+
+    If shift is negative the scatterer will be a well, otherwise it'll be a barrier.
+    Note that the signs of "pot" and "shift" are both changed bellow, this is because
+    we want to think in terms of a tunable Fermi level, but what the code actually
+    do is to move all the band structure with a fixed Fermi level at E = 0.
+
+    '''
+
     def potential_barrier(x,y):
+        """
+        This function defines the potential scatterer in center of the system.
+        It is passed as the C-parameter in the dictionary 'params'.
+        x, y = coordinates in the plane of system
+
+        """
         if abs(x) < L_barrier/2 :
-            return -(pot-shift)
+            """
+            The potential has the width of the system and is y-independent
+            The shape of the potential depend on the sign of the value "shift";
+            if shift > 0 we have a barrier, otherwise we get a well.
+            """
+            return pot-shift
         else:
             return 0
 
     # params = dict(A=3.65, B=-68.6, D=-51.1,
     #     M=-0.01, C=potential_barrier,C_const=-shift)
     params = dict(A=364.5, B=-686.0, D=-512.0,
-        M=-10.0, C=potential_barrier,C_const=-shift)
+        M=-10.0, C=potential_barrier,C_const=-pot)
     syst = bhz_down()
     # kx_max = 0.25
     # kx_min = -kx_max
@@ -164,80 +274,6 @@ def analyze_bhz_down(pot=0, L_barrier=500, shift=0, lead_index=0):
     kwant.plotter.current(syst, current,colorbar=False,fig_size=(9,2),ax=ax2)
     plt.tight_layout()
     plt.show()
-
-def analyze_bhz_up(pot=0, L_barrier=500, shift=0, lead_index=0):
-
-    '''
-    Somente para a componente up:
-
-    Essa função retorna o gráfico que representa módulo ao quadrado da função de onda
-    mapeado sobre o sistema e, da mesma forma, o mapeamento da densidade de corrente.
-
-    lead_index = lead identifier: 0 for left lead and 1 for right lead
-    L_barrier = length of potential scatterer (a barrier or a well)
-    pot =  potential level for leads
-    shift = difference between scatterer potential level and leads potential
-
-    If shift is negative the scatterer will be a well, otherwise it'll be a barrier.
-
-    '''
-
-    def potential_barrier(x,y):
-        if abs(x) < L_barrier/2 :
-            return pot + shift
-        else:
-            return pot
-
-    # params = dict(A=3.65, B=-68.6, D=-51.1,
-    #     M=-0.01, C=potential_barrier,C_const=-shift)
-    params = dict(A=364.5, B=-686.0, D=-512.0,
-        M=-10.0, C=potential_barrier,C_const=-shift)
-    syst = bhz_up()
-    # kx_max = 0.25
-    # kx_min = -kx_max
-    # kwant.plotter.bands(syst.leads[0], params=params,
-    #                     momenta=np.linspace(kx_min, kx_max, 201),
-    #                     fig_size=(6,6), show=False)
-    #
-    # plt.grid()
-    # plt.xlim(kx_min, kx_max)
-    # plt.ylim(-40, 40)
-    # plt.xlabel(r'momentum [nm$^{-1}$]')
-    # plt.ylabel(r'Energy [meV]')
-    # plt.tight_layout()
-    # plt.show()
-
-
-    # get scattering wave functions at E=0
-    wf = kwant.wave_function(syst, energy=0, params=params)
-
-    # prepare density operators
-    sigma_z = np.array([[1, 0], [0, -1]])
-    prob_density = kwant.operator.Density(syst, np.eye(2))
-    J_0 = kwant.operator.Current(syst)
-
-    # calculate expectation values and plot them
-    wf_sqr = sum(prob_density(psi) for psi in wf(lead_index))
-    current = sum(J_0(psi,params=params) for psi in wf(lead_index))
-
-    ax1 = plt.gca()
-    ax1.set_title(r'$\Psi_{\uparrow}$')
-    ax1.set_xlabel(r'$x$ [nm]')
-    ax1.set_ylabel(r'$y$ [nm]')
-    kwant.plotter.map(syst, wf_sqr,colorbar=False,fig_size=(9,2),ax=ax1)
-    plt.tight_layout()
-    plt.show()
-
-    ax2 = plt.gca()
-    ax2.set_title(r'$J_{\uparrow}$')
-    ax2.set_xlabel(r'$x$ [nm]')
-    ax2.set_ylabel(r'$y$ [nm]')
-    kwant.plotter.current(syst, current,colorbar=False,fig_size=(14,2),ax=ax2)
-    plt.tight_layout()
-    plt.show()
-
-
-
 
 
 def plot_conductance(syst, energies,L_barrier=100, pot=0, shift=0, choosed_color='red'):
@@ -283,8 +319,8 @@ def plot_conductance(syst, energies,L_barrier=100, pot=0, shift=0, choosed_color
 
 
 
-analyze_bhz_up(pot=0,shift=30)
-# analyze_bhz_down(pot=0,shift=30)
+# analyze_bhz_up(pot=30,shift=0)
+analyze_bhz_down(pot=30,shift=0)
 
 # syst = bhz_up(L=200)
 # plot_conductance(syst, energies=np.linspace(-40,40,100))
