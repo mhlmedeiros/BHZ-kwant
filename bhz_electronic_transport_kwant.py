@@ -170,22 +170,23 @@ def analyze_bhz_up(pot=0, L_barrier=500, shift=0, lead_index=0):
     '''
     Somente para a componente up:
 
-    Essa função retorna o gráfico que representam o quadrado do módulo da função de onda 
+    Essa função retorna o gráfico que representa módulo ao quadrado da função de onda
     mapeado sobre o sistema e, da mesma forma, o mapeamento da densidade de corrente.
-    
-    lead_index = índice da lead
-    L_barrier = 
-    pot = 
-    shift = 
 
+    lead_index = lead identifier: 0 for left lead and 1 for right lead
+    L_barrier = length of potential scatterer (a barrier or a well)
+    pot =  potential level for leads
+    shift = difference between scatterer potential level and leads potential
+
+    If shift is negative the scatterer will be a well, otherwise it'll be a barrier.
 
     '''
 
     def potential_barrier(x,y):
         if abs(x) < L_barrier/2 :
-            return -(pot-shift)
+            return pot + shift
         else:
-            return 0
+            return pot
 
     # params = dict(A=3.65, B=-68.6, D=-51.1,
     #     M=-0.01, C=potential_barrier,C_const=-shift)
@@ -243,13 +244,13 @@ def plot_conductance(syst, energies,L_barrier=100, pot=0, shift=0, choosed_color
 
     '''
     Essa função gera o gráfico da condutância do sistema dependendo da energia de Fermi
-    imposto ao sistema + leads. 
+    imposto ao sistema + leads.
 
     syst = 'sistema' finalizado - kwant
     energies = array com os valores adotados para a energia de Fermi
     L_barrier = comprimento da barreira de potencial presente no sistema
-    pot = 
-    shift = 
+    pot =
+    shift =
     chossed_color = cor adotada para os 'dots' que compõem o gráfico
 
     '''
