@@ -1,5 +1,5 @@
 import kwant
-
+import kwant.continuum
 import tinyarray
 import numpy as np
 import matplotlib.pyplot as plt
@@ -40,8 +40,8 @@ def bhz_up(a=2, L=1000, W=200):
        - A * k_y * sigma_y
        """
 
-    template_syst = kwant.continuum.discretize(hamiltonian_syst, grid_spacing=a)
-    template_lead = kwant.continuum.discretize(hamiltonian_lead, grid_spacing=a)
+    template_syst = kwant.continuum.discretize(hamiltonian_syst, grid=a)
+    template_lead = kwant.continuum.discretize(hamiltonian_lead, grid=a)
 
 
     def shape(site):
@@ -81,8 +81,8 @@ def bhz_down(a=2, L=1000, W=200):
        - A * k_y * sigma_y
        """
 
-    template_syst = kwant.continuum.discretize(hamiltonian_syst, grid_spacing=a)
-    template_lead = kwant.continuum.discretize(hamiltonian_lead, grid_spacing=a)
+    template_syst = kwant.continuum.discretize(hamiltonian_syst, grid=a)
+    template_lead = kwant.continuum.discretize(hamiltonian_lead, grid=a)
 
 
     def shape(site):
@@ -214,12 +214,12 @@ def analyze_bhz_down(pot=0, L_barrier=500, shift=0, lead_index=0):
         """
         This function defines the potential scatterer in center of the system.
         It is passed as the C-parameter in the dictionary 'params'.
-        x, y = coordinates in the plane of system
+        x, y = coordinates in the plane of the system
 
         """
         if abs(x) < L_barrier/2 :
             """
-            The potential has the width of the system and is y-independent
+            The potential has the same width of the system and is y-independent
             The shape of the potential depend on the sign of the value "shift";
             if shift > 0 we have a barrier, otherwise we get a well.
             """
@@ -320,7 +320,7 @@ def plot_conductance(syst, energies,L_barrier=100, pot=0, shift=0, choosed_color
 
 
 # analyze_bhz_up(pot=30,shift=0)
-analyze_bhz_down(pot=30,shift=0)
+analyze_bhz_down(pot=30,shift=-30)
 
 # syst = bhz_up(L=200)
 # plot_conductance(syst, energies=np.linspace(-40,40,100))

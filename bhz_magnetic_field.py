@@ -179,8 +179,7 @@ def bhz_down(a=2, L=1000, W=200):
     syst = syst.finalized()
     return syst
 
-def bandas_up_and_down(syst1, syst2, line1="-", line2="--",
-    a = 2, B_0 = 0, k_pcent = 0.55):
+def bandas_up_and_down(syst1, syst2, line1="-", line2="--", a = 2, B_0 = 0, k_pcent = 0.55):
 
     params = dict( A = 364.5, B = -686.0,
                  D = -512.0, M = -10.0,
@@ -215,17 +214,17 @@ def band_k_B(syst, k_0 = 0, B_0 = 0):
     bands = kwant.physics.Bands(syst.leads[0], params = params)
     return bands(k_0)
 
-def colect_energies(syst, B_list, k_0 = 0):
+def collect_energies(syst, B_list, k_0 = 0):
        energies = []
        for B in B_list:
-              energies.append(band_k_B(syst, B_0 = B))
+           energies.append(band_k_B(syst, B_0 = B))
        return energies
 
 def plot_energy_vs_B(sistema_up, sistema_down, line1 = "-", line2 = "--", k_0 = 0):
     B_array = np.linspace(0,10,201)
 
-    bands1 = colect_energies(sistema_up, B_array)
-    bands2 = colect_energies(sistema_down, B_array)
+    bands1 = collect_energies(sistema_up, B_array)
+    bands2 = collect_energies(sistema_down, B_array)
 
     plt.plot(B_array, bands1, linestyle = line1,color="blue",label="oi")
     plt.plot(B_array, bands2, linestyle = line2,color="red",label="tchau")
